@@ -1,55 +1,59 @@
-# HỆ THỐNG QUẢN LÝ ĐĂNG KÝ ĐỀ TÀI NGHIÊN CỨU (RESEARCH PROJECT MANAGEMENT)
+# RESEARCH PROJECT REGISTRATION MANAGEMENT SYSTEM
 
-## Mô tả bài toán
+<p>
+  <img src="https://img.shields.io/badge/Java-17%2B-orange" alt="Java">
+  <img src="https://img.shields.io/badge/Spring%20MVC-brightgreen" alt="Spring MVC">
+  <img src="https://img.shields.io/badge/Hibernate-ORM-blue" alt="Hibernate">
+  <img src="https://img.shields.io/badge/MySQL-Database-4479A1" alt="MySQL">
+  <img src="https://img.shields.io/badge/Tomcat-10-yellow" alt="Tomcat 10">
+</p>
 
-Trường đại học cần xây dựng một website quản lý việc đăng ký đề tài nghiên cứu khoa học của sinh viên dưới sự hướng dẫn của giảng viên.
+## Problem Statement
 
-### Quan hệ dữ liệu
+A university needs to build a website to manage students' scientific research project registrations under the supervision of lecturers.
 
-* Một **Khoa** có nhiều **Giảng viên**.
-* Một **Giảng viên** thuộc một **Khoa**.
-* Một **Giảng viên** có thể hướng dẫn nhiều **Đề tài**.
-* Một **Đề tài** chỉ có một **Giảng viên hướng dẫn**.
+### Data Relationships
 
----
-
-# Công nghệ sử dụng
-
-* Java 17+
-* Spring MVC (Không sử dụng Spring Boot)
-* Hibernate ORM
-* MySQL
-* JSP/JSTL
-* Apache Tomcat 10
-* Maven
-* Bootstrap 5
-* Font Awesome
+- A **Faculty** has many **Lecturers**.
+- A **Lecturer** belongs to one **Faculty**.
+- A **Lecturer** can supervise many **Research Projects**.
+- A **Research Project** has only one **Supervising Lecturer**.
 
 ---
 
-# Thiết kế cơ sở dữ liệu
+## Tech Stack
 
-## Bảng KHOA
-
-| Tên cột      | Kiểu dữ liệu | Ràng buộc |
-| ------------ | ------------ | --------- |
-| maKhoa       | VARCHAR(20)  | PK        |
-| tenKhoa      | VARCHAR(100) | NOT NULL  |
-| vanPhongKhoa | VARCHAR(255) | NOT NULL  |
+- Java 17+
+- Spring MVC (no Spring Boot)
+- Hibernate ORM
+- MySQL
+- JSP/JSTL
+- Apache Tomcat 10
+- Maven
+- Bootstrap 5
+- Font Awesome
 
 ---
 
-## Bảng GIANG_VIEN
+## Database Design
 
-| Tên cột     | Kiểu dữ liệu | Ràng buộc          |
-| ----------- | ------------ | ------------------ |
-| maGiangVien | INT          | PK, AUTO_INCREMENT |
-| hoTen       | VARCHAR(100) | NOT NULL           |
-| hocVi       | VARCHAR(50)  | NOT NULL           |
-| email       | VARCHAR(100) | NOT NULL           |
-| maKhoa      | VARCHAR(20)  | FK                 |
+### FACULTY Table (KHOA)
 
-### Khóa ngoại
+| Column       | Data Type    | Constraint |
+| ------------ | ------------ | ---------- |
+| maKhoa       | VARCHAR(20)  | PK         |
+| tenKhoa      | VARCHAR(100) | NOT NULL   |
+| vanPhongKhoa | VARCHAR(255) | NOT NULL   |
+
+### LECTURER Table (GIANG_VIEN)
+
+| Column      | Data Type    | Constraint          |
+| ----------- | ------------ | -------------------- |
+| maGiangVien | INT          | PK, AUTO_INCREMENT   |
+| hoTen       | VARCHAR(100) | NOT NULL              |
+| hocVi       | VARCHAR(50)  | NOT NULL               |
+| email       | VARCHAR(100) | NOT NULL                |
+| maKhoa      | VARCHAR(20)  | FK                        |
 
 ```sql
 ALTER TABLE GIANG_VIEN
@@ -58,20 +62,16 @@ FOREIGN KEY(maKhoa)
 REFERENCES KHOA(maKhoa);
 ```
 
----
+### RESEARCH PROJECT Table (DE_TAI)
 
-## Bảng DE_TAI
-
-| Tên cột         | Kiểu dữ liệu | Ràng buộc          |
-| --------------- | ------------ | ------------------ |
-| maDeTai         | INT          | PK, AUTO_INCREMENT |
-| tenDeTai        | VARCHAR(255) | NOT NULL           |
-| linhVuc         | VARCHAR(100) | NOT NULL           |
-| kinhPhiPheDuyet | BIGINT       | NOT NULL           |
-| ngayDangKy      | DATE         | NOT NULL           |
-| maGiangVien     | INT          | FK                 |
-
-### Khóa ngoại
+| Column          | Data Type    | Constraint          |
+| --------------- | ------------ | -------------------- |
+| maDeTai         | INT          | PK, AUTO_INCREMENT   |
+| tenDeTai        | VARCHAR(255) | NOT NULL              |
+| linhVuc         | VARCHAR(100) | NOT NULL               |
+| kinhPhiPheDuyet | BIGINT       | NOT NULL                |
+| ngayDangKy      | DATE         | NOT NULL                 |
+| maGiangVien     | INT          | FK                         |
 
 ```sql
 ALTER TABLE DE_TAI
@@ -82,19 +82,15 @@ REFERENCES GIANG_VIEN(maGiangVien);
 
 ---
 
-# Mapping Hibernate
+## Hibernate Mapping
 
-## Khoa Entity
-
+**Khoa (Faculty) Entity**
 ```java
 @OneToMany(mappedBy = "khoa")
 private List<GiangVien> giangVienList;
 ```
 
----
-
-## GiangVien Entity
-
+**GiangVien (Lecturer) Entity**
 ```java
 @ManyToOne
 @JoinColumn(name = "maKhoa")
@@ -104,10 +100,7 @@ private Khoa khoa;
 private List<DeTai> deTaiList;
 ```
 
----
-
-## DeTai Entity
-
+**DeTai (Research Project) Entity**
 ```java
 @ManyToOne
 @JoinColumn(name = "maGiangVien")
@@ -116,29 +109,11 @@ private GiangVien giangVien;
 
 ---
 
-# Chức năng 1: Đăng ký đề tài nghiên cứu
+## Feature 1: Register a Research Project
 
-## Form nhập liệu
+**Input form:** Project title, Field, Approved budget, Registration date, Supervising lecturer.
 
-Thông tin cần nhập:
-
-* Tên đề tài
-* Lĩnh vực
-* Kinh phí phê duyệt
-* Ngày đăng ký
-* Giảng viên hướng dẫn
-
----
-
-## ComboBox Giảng viên
-
-Dữ liệu được load từ bảng:
-
-```text
-GIANG_VIEN
-```
-
-Ví dụ:
+**Lecturer ComboBox** — data loaded from the `GIANG_VIEN` table:
 
 ```jsp
 <form:select path="maGiangVien">
@@ -149,12 +124,9 @@ Ví dụ:
 </form:select>
 ```
 
----
+### Validation
 
-# Validation
-
-## Kiểm tra bắt buộc nhập
-
+**Required fields:**
 ```java
 @NotBlank
 private String tenDeTai;
@@ -169,119 +141,48 @@ private Long kinhPhiPheDuyet;
 private LocalDate ngayDangKy;
 ```
 
----
-
-## Kiểm tra kinh phí
-
-Điều kiện:
-
-* Là số nguyên dương.
-* Chia hết cho 1.000.000.
-
-Ví dụ:
-
+**Budget:** must be a positive integer, divisible by 1,000,000.
 ```java
 kinhPhiPheDuyet > 0
 && kinhPhiPheDuyet % 1000000 == 0
 ```
+- Valid: `1000000`, `5000000`, `10000000`, `15000000`, `20000000`
+- Invalid: `1500000`, `2500000`, `17500000`
 
-### Hợp lệ
-
-```text
-1000000
-5000000
-10000000
-15000000
-20000000
-```
-
-### Không hợp lệ
-
-```text
-1500000
-2500000
-17500000
-```
-
----
-
-## Kiểm tra học vị giảng viên
-
-Quy định:
-
-* Tiến sĩ → Được hướng dẫn
-* PGS → Được hướng dẫn
-* Thạc sĩ → Không được hướng dẫn đề tài cấp trường
-
-Ví dụ:
-
+**Lecturer's degree:** PhD/Associate Professor → allowed to supervise; Master's degree → not allowed to supervise university-level projects.
 ```java
 if (giangVien.getHocVi().equals("Thạc sĩ")) {
     errors.rejectValue(
         "maGiangVien",
         "error.hocVi",
-        "Giảng viên có học vị Thạc sĩ không đủ điều kiện hướng dẫn đề tài cấp trường"
+        "A lecturer with a Master's degree is not qualified to supervise a university-level project"
     );
 }
 ```
 
 ---
 
-# Chức năng 2: Tra cứu đề tài
+## Feature 2: Search Research Projects
 
-## Form tìm kiếm
+**Search by:** Faculty name, or Lecturer name.
 
-Cho phép tìm theo:
+**Results displayed:** Project ID, Project title, Field, Lecturer, Degree, Faculty.
 
-* Tên khoa
-* Tên giảng viên
+### 3-Table JOIN Query
 
-Ví dụ:
-
-```text
-Công nghệ thông tin
-```
-
-hoặc
-
-```text
-Nguyễn Văn A
-```
-
----
-
-## Kết quả hiển thị
-
-| Mã đề tài | Tên đề tài | Lĩnh vực | Giảng viên | Học vị | Khoa |
-| --------- | ---------- | -------- | ---------- | ------ | ---- |
-
----
-
-# Truy vấn JOIN 3 bảng
-
-## SQL
-
+**SQL:**
 ```sql
-SELECT dt.maDeTai,
-       dt.tenDeTai,
-       dt.linhVuc,
-       gv.hoTen,
-       gv.hocVi,
-       k.tenKhoa
+SELECT dt.maDeTai, dt.tenDeTai, dt.linhVuc,
+       gv.hoTen, gv.hocVi, k.tenKhoa
 FROM DE_TAI dt
-INNER JOIN GIANG_VIEN gv
-    ON dt.maGiangVien = gv.maGiangVien
-INNER JOIN KHOA k
-    ON gv.maKhoa = k.maKhoa
+INNER JOIN GIANG_VIEN gv ON dt.maGiangVien = gv.maGiangVien
+INNER JOIN KHOA k ON gv.maKhoa = k.maKhoa
 WHERE k.tenKhoa LIKE '%?%'
    OR gv.hoTen LIKE '%?%';
 ```
 
----
-
-## HQL
-
-```java
+**HQL:**
+```
 SELECT dt
 FROM DeTai dt
 JOIN dt.giangVien gv
@@ -292,9 +193,9 @@ WHERE k.tenKhoa LIKE :keyword
 
 ---
 
-# Cấu trúc Project
+## Project Structure
 
-```text
+```
 src/main/java
 │
 ├── controller
@@ -325,85 +226,74 @@ src/main/java
 
 ---
 
-# Giao diện
+## UI
 
-## Dashboard
+**Dashboard:** Total faculties, Total lecturers, Total research projects.
 
-Hiển thị:
+**Project Management:** Add a new project, list of projects.
 
-* Tổng số khoa
-* Tổng số giảng viên
-* Tổng số đề tài
+**Search:** By faculty, by lecturer.
 
-## Quản lý đề tài
-
-* Thêm mới đề tài
-* Danh sách đề tài
-
-## Tra cứu
-
-* Theo khoa
-* Theo giảng viên
-
-Yêu cầu:
-
-* Bootstrap 5
-* Font Awesome
-* Responsive Design
+Requirements: Bootstrap 5, Font Awesome, Responsive Design.
 
 ---
 
-# Yêu cầu kỹ thuật
+## Technical Requirements
 
-## Framework
-
-* Spring MVC thuần
-
-## ORM
-
-* Hibernate Mapping
-
-## Database
-
-* MySQL
-
-## Application Server
-
-* Apache Tomcat 10
-
-## Coding Convention
-
-* Package:
-
-    * controller
-    * model
-    * dao
-    * service
-
-* Class: PascalCase
-
-* Variable: camelCase
-
-* Mô hình:
-  Controller → Service → DAO → Entity
+- **Framework:** Plain Spring MVC (no Spring Boot)
+- **ORM:** Hibernate Mapping
+- **Database:** MySQL
+- **Application Server:** Apache Tomcat 10
+- **Coding Convention:** Packages (`controller`, `model`, `dao`, `service`), Class in PascalCase, Variable in camelCase, following the pattern `Controller → Service → DAO → Entity`
 
 ---
 
-# Kết luận
+## Getting Started
 
-Hệ thống đáp ứng đầy đủ các yêu cầu:
+### Requirements
 
-* Quản lý Khoa
-* Quản lý Giảng viên
-* Quản lý Đề tài nghiên cứu
-* ComboBox load dữ liệu từ CSDL
-* Validation kinh phí phê duyệt
-* Validation học vị giảng viên
-* JOIN 3 bảng (DE_TAI → GIANG_VIEN → KHOA)
-* Tìm kiếm theo Khoa hoặc Giảng viên
-* Spring MVC thuần
-* Hibernate ORM
-* MySQL
-* Apache Tomcat 10
-* Bootstrap + Font Awesome
-* Tuân thủ Java Coding Convention
+- JDK 17+
+- MySQL
+- Apache Tomcat 10
+- IDE: IntelliJ IDEA / Eclipse
+
+### Installation
+
+```bash
+git clone https://github.com/nhunguy-swe/research-project-management-spring-mvc.git
+cd research-project-management-spring-mvc
+```
+
+### Database Setup
+
+1. Run the SQL script in the `database/` folder to create the `KHOA`, `GIANG_VIEN`, and `DE_TAI` tables per the design above.
+2. Update the connection info in `HibernateConfig.java` (or the corresponding properties file).
+
+> ⚠️ Don't hard-code the database password directly in your code if pushing to a public GitHub repo — use environment variables or a config file added to `.gitignore` instead.
+
+### Running the Application
+
+1. Build the project with Maven:
+   ```bash
+   mvn clean install
+   ```
+2. Deploy the resulting `.war` file to **Apache Tomcat 10**.
+3. Access the application in your browser at your Tomcat's configured address (e.g. `http://localhost:8080/quan-ly-de-tai/`).
+
+---
+
+## Conclusion
+
+The system fully meets the requirements: Faculty management · Lecturer management · Research project management · ComboBox loaded from the database · Approved budget validation · Lecturer's degree validation · 3-table JOIN (DE_TAI → GIANG_VIEN → KHOA) · Search by Faculty or Lecturer · Plain Spring MVC · Hibernate ORM · MySQL · Apache Tomcat 10 · Bootstrap + Font Awesome · Follows Java coding convention
+
+---
+
+## Author
+
+- GitHub: [@nhunguy-swe](https://github.com/nhunguy-swe)
+
+---
+
+## License
+
+Created for learning/academic purposes.
